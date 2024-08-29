@@ -11,7 +11,6 @@ on:
 env:
   AWS_REGION: us-west-1
   REPOSITORY: delivery-webui
-  # REGISTRY: Amazon-ECR
  
 
 jobs:
@@ -52,7 +51,6 @@ jobs:
       #       -Dsonar.projectKey=Elsgit1_Els-learning-management-system
       #       -Dsonar.organization=elsgit1
       #       -Dsonar.host.url=https://sonarcloud.io
-      #       -Dsonar.login=${{ secrets.SONAR_TOKEN }}
       #       -Dsonar.java.binaries=frontend/target/classes
       #   env:
       #     GITHUB_TOKEN: ${{ secrets.ACCESS_TOKEN }}
@@ -144,7 +142,7 @@ jobs:
           ECR_REPOSITORY: ${{ env.REPOSITORY }}
           IMAGE_TAG: ${{ steps.next_version.outputs.tag }}
         run: |
-          docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG -f frontend/Dockerfile frontend 
+          docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG -f customer-webui/Dockerfile customer-webui 
           echo "IMAGE_NAME=$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG" >> $GITHUB_ENV
           echo "::set-output name=name::$REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG"
   
@@ -192,7 +190,7 @@ jobs:
           ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
           ECR_REPOSITORY: ${{ env.REPOSITORY }}
           IMAGE_TAG: ${{ steps.next_version.outputs.tag }}
-          APP_NAME: delivery-webUI
+          APP_NAME: delivery-webui
           DOCKERHUB_USERNAME: elsdokr
         run: |
           
@@ -206,21 +204,21 @@ jobs:
   ###            Update image name in manifest            ###
   ###########################################################         
 
-      # - name: Update Manifest
-      #   env:
-      #     IMAGE_NAME: ${{ env.IMAGE_NAME }}
-      #     ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
-      #     ECR_REPOSITORY: ${{ env.REPOSITORY }}
-      #     IMAGE_TAG: ${{ steps.next_version.outputs.tag }}
-      #     GITHUB_TOKEN: ${{ secrets.ACCESS_TOKEN }}
-      #   run: |
-      #     sed -i 's|image: .*|image: '"$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG"'|g' k8s_manifests/webUI-deply.yml
-      #     echo "Updated deployment image with $IMAGE_NAME"
+      - name: Update Manifest
+        env:
+          IMAGE_NAME: ${{ env.IMAGE_NAME }}
+          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+          ECR_REPOSITORY: ${{ env.REPOSITORY }}
+          IMAGE_TAG: ${{ steps.next_version.outputs.tag }}
+          GITHUB_TOKEN: ${{ secrets.ACCESS_TOKEN }}
+        run: |
+          sed -i 's|image: .*|image: '"$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG"'|g' k8s_manifests/webUI-deply.yml
+          echo "Updated deployment image with $IMAGE_NAME"
 
-      # - name: Commit and push changes
-      #   run: |
-      #     git add k8s_manifests/webUI-deply.yml
-      #     git commit -m "Updated deployment image to $IMAGE_NAME"
-      #     git push origin main
+      - name: Commit and push changes
+        run: |
+          git add k8s_manifests/webUI-deply.yml
+          git commit -m "Updated deployment image to $IMAGE_NAME"
+          git push origin main
           
 
