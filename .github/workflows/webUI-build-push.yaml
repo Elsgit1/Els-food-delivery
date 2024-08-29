@@ -185,7 +185,7 @@ jobs:
   ###     Tag Docker image as "latest" and push to ECR    ###
   ########################################################### 
   
-      - name: Push Docker image to Amazon ECR
+      - name: Push image to ECR & DockerHub repos
         env:
           ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
           ECR_REPOSITORY: ${{ env.REPOSITORY }}
@@ -194,10 +194,12 @@ jobs:
           DOCKERHUB_USERNAME: elsdokr
         run: |
           
-          # Tag the image with the app name and version
+          #Tag and push to ECR
           docker tag $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG $ECR_REGISTRY/$APP_NAME:$IMAGE_TAG
-          # Push the specific version tag
           docker push $ECR_REGISTRY/$APP_NAME:$IMAGE_TAG
+
+          #Tag and push to DockerHub
+          docker tag $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG $DOCKERHUB_USERNAME/$APP_NAME:$IMAGE_TAG
           docker push $DOCKERHUB_USERNAME/$APP_NAME:$IMAGE_TAG
 
   ###########################################################
