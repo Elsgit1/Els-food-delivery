@@ -10,7 +10,7 @@ on:
 
 env:
   AWS_REGION: us-west-1
-  REPOSITORY: delivery-webUI
+  REPOSITORY: delivery-webui
   # REGISTRY: Amazon-ECR
  
 
