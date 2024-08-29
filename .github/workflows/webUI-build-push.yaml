@@ -11,6 +11,7 @@ on:
 env:
   AWS_REGION: us-west-1
   REPOSITORY: delivery-webui
+  REGISTRY: Amazon-ecr
  
 
 jobs:
@@ -190,7 +191,7 @@ jobs:
           ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
           ECR_REPOSITORY: ${{ env.REPOSITORY }}
           IMAGE_TAG: ${{ steps.next_version.outputs.tag }}
-          APP_NAME: delivery-webui
+          APP_NAME: delivery-webUI
           DOCKERHUB_USERNAME: elsdokr
         run: |
           
