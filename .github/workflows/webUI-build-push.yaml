@@ -101,7 +101,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.ACCESS_TOKEN }}
         with:
           tag_name: ${{ steps.next_version.outputs.tag }}
-          release_name: delivery-webUI ${{ steps.next_version.outputs.tag }}
+          release_name: delivery-webui ${{ steps.next_version.outputs.tag }}
           draft: false
           prerelease: false
   

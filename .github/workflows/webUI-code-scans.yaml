@@ -10,7 +10,7 @@ on:
 env:
   AWS_REGION: us-west-1
   REPOSITORY: delivery-webui
-  # REGISTRY: Amazon-ECR
+  REGISTRY: Amazon-ecr
 
 jobs:
     code-scans:
@@ -98,6 +98,7 @@ jobs:
       - name: Build Docker image
         id: build-image
         env:
+          REGISTRY: ${{ env.REGISTRY }}
           ECR_REPOSITORY: ${{ env.REPOSITORY }}
           IMAGE_TAG: ${{ steps.next_version.outputs.tag }}
         run: |
