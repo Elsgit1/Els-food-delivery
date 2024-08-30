@@ -1,7 +1,7 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: webUI-deply
+  name: search-deply
   namespace: dev
 spec:
   replicas: 3
@@ -11,17 +11,17 @@ spec:
       app: delivery-app
   template:
     metadata:
-      name: webUI-pod
+      name: search-pod
       labels:
         layer: frontend
         app: delivery-app
     spec:
       containers:
-      - name: webUI-cont
+      - name: search-cont
         image: ${{ env.IMAGE_NAME }}
         ports:
         - name: web
-          containerPort: 2000
+          containerPort: 2021
           protocol: TCP
         resources:
           requests:
