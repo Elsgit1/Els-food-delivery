@@ -1,10 +1,18 @@
 module github.com/nurali-techie/microservices/commons-go
 
-go 1.17
+go 1.21
+
+toolchain go1.23.0
 
 require (
-	github.com/lib/pq v1.10.3
-	google.golang.org/protobuf v1.27.1
+	github.com/lib/pq v1.10.9
+	google.golang.org/grpc v1.66.0
+	google.golang.org/protobuf v1.34.2
 )
 
-require golang.org/x/xerrors v0.0.0-20200804184101-5ec99f83aff1 // indirect
+require (
+	golang.org/x/net v0.26.0 // indirect
+	golang.org/x/sys v0.21.0 // indirect
+	golang.org/x/text v0.16.0 // indirect
+	google.golang.org/genproto/googleapis/rpc v0.0.0-20240604185151-ef581f913117 // indirect
+)
