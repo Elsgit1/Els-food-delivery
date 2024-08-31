@@ -1,16 +1,16 @@
-name: search containerize and push to ECR.
+name: webUI containerize and push to ECR.
 
 on:
   push:
     branches: ["main"]
     paths:
-      - 'search-service/**'
+      - 'commons-go/**'
 
   workflow_dispatch:
 
 env:
   AWS_REGION: us-west-1
-  REPOSITORY: delivery-search
+  REPOSITORY: delivery-webui
  
 
 jobs:
@@ -25,7 +25,7 @@ jobs:
         uses: actions/checkout@v4
         with:
           fetch-depth: 0 # Necessary to fetch all tags and history
-
+  
   
       - name: Setup Git
         run: |
@@ -70,7 +70,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.ACCESS_TOKEN }}
         with:
           tag_name: ${{ steps.next_version.outputs.tag }}
-          release_name: delivery-search ${{ steps.next_version.outputs.tag }}
+          release_name: commons-go ${{ steps.next_version.outputs.tag }}
           draft: false
           prerelease: false
   
@@ -90,6 +90,15 @@ jobs:
         id: login-ecr
         uses: aws-actions/amazon-ecr-login@v2
   
+      # - name: Extract repository name
+      #   id: repo-name
+      #   run: |
+      #     REPO_NAME="${GITHUB_REPOSITORY##*/}"
+      #     echo "REPO_NAME=$REPO_NAME" >> $GITHUB_ENV
+      #     echo "::set-output name=repo_name::$REPO_NAME"
+  
+      # - name: Set up Docker Buildx
+      #   uses: docker/setup-buildx-action@v1
 
       - name: Log in to Docker Hub
         uses: docker/login-action@v2
@@ -104,13 +113,16 @@ jobs:
           ECR_REPOSITORY: ${{ env.REPOSITORY }}
           IMAGE_TAG: ${{ steps.next_version.outputs.tag }}
         run: |
-          docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG -f search-service/Dockerfile search-service
+          docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG -f commons-go/Dockerfile commons-go 
           echo "IMAGE_NAME=$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG" >> $GITHUB_ENV
           echo "::set-output name=name::$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG"
   
   ###########################################################
-  ###  Docker image Snyk scan & sonarcloud analysis       ###
-  ###########################################################                
+  ###  Docker image Snyk scan | If fails, drop the action ###
+  ###       Connected to my personal Snyk account         ###
+  ###     The code owner receives an email notification   ###
+  ### Possible to configure Slack notification if needed  ###
+  ###########################################################               
                  
       - name: Run Snyk to check Docker image for vulnerabilities
         uses: snyk/actions/docker@master
@@ -119,7 +131,14 @@ jobs:
         with:
            image: ${{ steps.build-image.outputs.name }}
            args: --severity-threshold=high --policy-path=.snyk
-        continue-on-error: true      
+        continue-on-error: true
+      
+  ################################################################
+  ###               SONAR CLOUD SCAN                           ###
+  ### Drops the build if any bugs or vulnerabilities are found.###
+  ###            Using the default quality gate.               ###
+  ###        Connected to my personal Sonar Cloud account      ###
+  ################################################################
 
       - name: SonarCloud Scan
         uses: SonarSource/sonarcloud-github-action@master
@@ -132,9 +151,9 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.ACCESS_TOKEN }}
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
   
-
   ###########################################################
-  ###           Push image to ECR & dockerhub             ###
+  ###                   PUSH IMAGE TO ECR                 ###
+  ###     Tag Docker image as "latest" and push to ECR    ###
   ########################################################### 
   
       - name: Push image to ECR & DockerHub repos
@@ -142,7 +161,7 @@ jobs:
           ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
           ECR_REPOSITORY: ${{ env.REPOSITORY }}
           IMAGE_TAG: ${{ steps.next_version.outputs.tag }}
-          APP_NAME: delivery-search
+          APP_NAME: commons-go
           DOCKERHUB_USERNAME: elsdokr
         run: |
           
@@ -155,8 +174,8 @@ jobs:
           docker push $DOCKERHUB_USERNAME/$APP_NAME:$IMAGE_TAG
 
   ###########################################################
-  ###        Update image name and tag in manifest        ###
-  ###########################################################          
+  ###            Update image name in manifest            ###
+  ###########################################################         
 
       - name: Update Manifest
         env:
@@ -166,12 +185,12 @@ jobs:
           IMAGE_TAG: ${{ steps.next_version.outputs.tag }}
           GITHUB_TOKEN: ${{ secrets.ACCESS_TOKEN }}
         run: |
-          sed -i 's|image: .*|image: '"$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG"'|g' k8s_manifests/search-deply.yml
+          sed -i 's|image: .*|image: '"$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG"'|g' k8s_manifests/commons-deply.yml
           echo "Updated deployment with new image tag: $IMAGE_TAG"
 
       - name: Commit and push changes
         run: |
-          git add k8s_manifests/search-deply.yml
+          git add k8s_manifests/commons-deply.yml
           git commit -m "Updated deployment image to $IMAGE_NAME"
           git push origin main
           
