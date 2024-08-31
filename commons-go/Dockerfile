@@ -14,7 +14,7 @@ RUN go mod download
 COPY . .
 
 # Build the Go app
-RUN go build -o menu-service
+RUN go build -o commons-go
 
 # Use a smaller base image for the final container
 FROM alpine:latest
@@ -23,10 +23,10 @@ FROM alpine:latest
 WORKDIR /root/
 
 # Copy the Pre-built binary file from the previous stage
-COPY --from=builder /app/menu-service .
+COPY --from=builder /app/commons-go .
 
 # Expose port 2021 to the outside world
-EXPOSE 2011
+EXPOSE 2001
 
 # Command to run the executable
-CMD ["./menu-service"]
+CMD ["./commons-go"]
